@@ -1,123 +1,128 @@
-const canvas = document.getElementById("galaxy");
+const canvas = document.getElementById("solarCanvas");
 const ctx = canvas.getContext("2d");
 
-let cw = (canvas.width = window.innerWidth);
-let ch = (canvas.height = window.innerHeight);
-let cX = cw / 2,
-  cY = ch / 2;
-
-window.addEventListener("resize", () => {
-  cw = canvas.width = window.innerWidth;
-  ch = canvas.height = window.innerHeight;
-  cX = cw / 2;
-  cY = ch / 2;
-});
-
-const stars = [],
-  N = 5000;
-let zMain = 1.8,
-  tzMain = 1.8;
-
-for (let i = 0; i < N; i++) {
-  stars.push({
-    r0: 50 + Math.random() * Math.max(cw, ch),
-    a: Math.random() * 2 * Math.PI,
-    s: 0.00002 + Math.random() * 0.0002,
-    z: Math.random(),
-    sz: 0.7 + Math.random() * 3,
-    et: 0.3 + Math.random() * 0.7,
-    c: `hsl(${Math.random() * 360},80%,${70 + Math.random() * 20}%)`,
-  });
+let cw, ch;
+function resizeCanvas() {
+  canvas.width = cw = window.innerWidth;
+  canvas.height = ch = window.innerHeight;
 }
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
-canvas.addEventListener("mousemove", (e) => {
-  const dx = e.clientX - cX,
-    dy = e.clientY - cY;
-  tzMain = 1.8 + (Math.hypot(dx, dy) / Math.max(cw, ch)) * 3;
-});
-canvas.addEventListener("touchmove", (e) => {
-  const t = e.touches[0];
-  const dx = t.clientX - cX,
-    dy = t.clientY - cY;
-  tzMain = 1.8 + (Math.hypot(dx, dy) / Math.max(cw, ch)) * 3;
-  e.preventDefault();
-});
-
-canvas.addEventListener("click", (e) => {
-  const dx = e.clientX - cX;
-  const dy = e.clientY - cY;
-  const dist = Math.hypot(dx, dy);
-
-  const starRadius = getStarRadius(); // sử dụng lại hàm responsive bên dưới
-
-  if (dist < starRadius + 15) {
-    window.location.href = "https://hien0101.github.io/loveyou-b-iucuame/";
-  } else {
-    stars.forEach((s) => {
-      s.r0 = 50 + Math.random() * Math.max(cw, ch);
+const createStarField = () => {
+  const arr = [];
+  const N = 300;
+  for (let i = 0; i < N; i++) {
+    arr.push({
+      x: Math.random() * cw,
+      y: Math.random() * ch,
+      r: 0.5 + Math.random() * 1.5,
+      alpha: 0.2 + Math.random() * 0.8,
     });
   }
+  return arr;
+};
+let starsBg = createStarField();
+
+const centerX = () => cw / 2;
+const centerY = () => ch / 2;
+
+// Planets data
+const planets = [
+  { name: "Mercury", d: 90, r: 6, color: "#d4d4d4", speed: 0.004 },
+  { name: "Venus", d: 130, r: 8, color: "#e3c07b", speed: 0.003 },
+  { name: "Earth", d: 170, r: 10, color: "#3399ff", speed: 0.0025 },
+  { name: "Mars", d: 210, r: 9, color: "#d94c3d", speed: 0.0015 },
+  { name: "Jupiter", d: 270, r: 16, color: "#f4e2c0", speed: 0.001 },
+  { name: "Saturn", d: 320, r: 14, color: "#f6d98a", speed: 0.0008 },
+  { name: "Uranus", d: 370, r: 12, color: "#b3ffff", speed: 0.0006 },
+];
+planets.forEach((p) => (p.angle = Math.random() * Math.PI * 2));
+
+// Handle click on Earth
+canvas.addEventListener("click", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  planets.forEach((p) => {
+    if (p.name === "Earth") {
+      const x = centerX() + p.d * Math.cos(p.angle);
+      const y = centerY() + p.d * Math.sin(p.angle);
+      if (Math.hypot(mx - x, my - y) <= p.r + 8) {
+        window.location.href = "https://hien0101.github.io/loveyou2/";
+      }
+    }
+  });
 });
 
-function getStarRadius() {
-  let base = Math.min(cw, ch) / 12;
-  if (cw < 600 || ch < 600) {
-    base *= 0.75; // thu nhỏ ngôi sao to hơn nữa trên điện thoại
-  }
-  return base;
-}
-
-function drawGalaxy() {
+function draw() {
   ctx.clearRect(0, 0, cw, ch);
-  zMain += (tzMain - zMain) * 0.05;
 
-  const quadR = Math.max(cw, ch);
-  [
-    ["rgba(255,0,255,0.2)", -1, -1],
-    ["rgba(0,255,255,0.2)", 1, -1],
-    ["rgba(255,255,0,0.2)", -1, 1],
-    ["rgba(0,255,128,0.2)", 1, 1],
-  ].forEach(([col, ix, iy]) => {
-    const g = ctx.createRadialGradient(
-      cX + (ix * quadR) / 3,
-      cY + (iy * quadR) / 3,
-      0,
-      cX + (ix * quadR) / 3,
-      cY + (iy * quadR) / 3,
-      quadR
-    );
-    g.addColorStop(0, col);
-    g.addColorStop(1, "transparent");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, cw, ch);
-  });
-
-  // sao bé elip quay
-  stars.forEach((s) => {
-    s.a += s.s;
-    const scale = (1 - s.z) * zMain;
-    const dist = s.r0 * scale;
-    const x = cX + dist * Math.cos(s.a);
-    const y = cY + dist * s.et * Math.sin(s.a);
+  // draw background stars
+  starsBg.forEach((s) => {
     ctx.beginPath();
-    ctx.arc(x, y, s.sz * scale * 0.7, 0, 2 * Math.PI);
-    ctx.fillStyle = s.c;
+    ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
     ctx.fill();
   });
 
-  // ngôi sao to responsive
-  const starRadius = getStarRadius();
-  const mg = ctx.createRadialGradient(cX, cY, 0, cX, cY, starRadius);
-  mg.addColorStop(0, "white");
-  mg.addColorStop(0.3, "#ffdd66");
-  mg.addColorStop(1, "rgba(255,200,0,0.1)");
-
+  const sx = centerX(),
+    sy = centerY();
+  const sunR = Math.min(cw, ch) * 0.09;
+  // draw sun
+  const sunGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, sunR);
+  sunGrad.addColorStop(0, "#fffcee");
+  sunGrad.addColorStop(0.3, "#ffd54f");
+  sunGrad.addColorStop(1, "rgba(255,160,0,0.2)");
   ctx.beginPath();
-  ctx.arc(cX, cY, starRadius * (1 + (zMain - 1.8) * 0.2), 0, 2 * Math.PI);
-  ctx.fillStyle = mg;
+  ctx.arc(sx, sy, sunR, 0, 2 * Math.PI);
+  ctx.fillStyle = sunGrad;
+  ctx.shadowBlur = 30;
+  ctx.shadowColor = "#ffd54f";
   ctx.fill();
+  ctx.shadowBlur = 0;
 
-  requestAnimationFrame(drawGalaxy);
+  // draw orbits and planets
+  planets.forEach((p) => {
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.setLineDash([4, 4]);
+    ctx.arc(sx, sy, p.d, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    p.angle += p.speed;
+    const x = sx + p.d * Math.cos(p.angle);
+    const y = sy + p.d * Math.sin(p.angle);
+
+    // draw planet with glow
+    const grad = ctx.createRadialGradient(
+      x - p.r / 3,
+      y - p.r / 3,
+      1,
+      x,
+      y,
+      p.r
+    );
+    grad.addColorStop(0, "white");
+    grad.addColorStop(0.3, p.color);
+    grad.addColorStop(1, p.color);
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, 2 * Math.PI);
+    ctx.fillStyle = grad;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = p.color;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // planet label
+    ctx.font = "bold 13px Arial";
+    ctx.fillStyle = "#ccc";
+    ctx.textAlign = "center";
+    ctx.fillText(p.name, x, y + p.r + 12);
+  });
+
+  requestAnimationFrame(draw);
 }
-
-drawGalaxy();
+draw();
