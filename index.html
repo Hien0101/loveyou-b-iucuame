@@ -2,15 +2,142 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <title>Solar System with Stars</title>
-    <link rel="stylesheet" href="main.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gửi Bé Hiền của anh 💌</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: url("https://i.imgur.com/RDgR5dn.jpg") no-repeat center
+          center fixed;
+        background-size: cover;
+        font-family: "Segoe UI", cursive;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        overflow-x: hidden;
+      }
+
+      .container {
+        background-color: rgba(255, 182, 193, 0.3);
+        border-radius: 20px;
+        padding: 20px;
+        max-width: 600px;
+        margin: auto;
+        margin-top: 60px;
+        box-shadow: 0 0 15px rgba(255, 192, 203, 0.6);
+      }
+
+      .message {
+        font-size: 18px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        word-wrap: break-word;
+      }
+
+      .heart {
+        position: absolute;
+        color: #ff3366;
+        animation: fall 4s linear infinite;
+        font-size: 20px;
+        z-index: 0;
+      }
+
+      @keyframes fall {
+        0% {
+          top: -10px;
+          opacity: 1;
+        }
+        100% {
+          top: 100vh;
+          opacity: 0;
+        }
+      }
+
+      #playMusic {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background: #ff80aa;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        color: white;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+      }
+
+      /* Responsive cho màn nhỏ */
+      @media screen and (max-width: 480px) {
+        .container {
+          padding: 15px;
+        }
+
+        .message {
+          font-size: 16px;
+        }
+
+        #playMusic {
+          font-size: 14px;
+          padding: 8px 16px;
+        }
+
+        .heart {
+          font-size: 16px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <canvas id="solarCanvas"></canvas>
-    <script src="main.js"></script>
+    <div class="container">
+      <div class="message" id="text"></div>
+      <button id="playMusic">🎵 Bật nhạc yêu thương</button>
+    </div>
+
+    <!-- Nhạc nền -->
+    <audio id="bgMusic" loop>
+      <source
+        src="https://cdn.pixabay.com/audio/2022/03/15/audio_2e6e661e24.mp3"
+        type="audio/mpeg"
+      />
+    </audio>
+
+    <!-- Trái tim rơi -->
+    <script>
+      const msg = `🌸 Gửi Bé Hiền xinh đẹp nhất của anh 🌸\n\nNếu hôm nay em thấy buồn, thấy mệt mỏi...\nThì hãy để anh ôm em thật chặt – dù chỉ qua màn hình 🫂\nEm tuyệt vời lắm, em mạnh mẽ lắm – và em luôn xứng đáng được yêu thương nhiều nhiều 💖\n\nCười lên đi nè 😚 vì anh luôn ở đây, yêu em!`;
+
+      let i = 0;
+      function typeWriter() {
+        if (i < msg.length) {
+          document.getElementById("text").innerHTML += msg.charAt(i);
+          i++;
+          setTimeout(typeWriter, 40);
+        }
+      }
+      typeWriter();
+
+      // Trái tim rơi
+      setInterval(() => {
+        let heart = document.createElement("div");
+        heart.className = "heart";
+        heart.innerHTML = "❤️";
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.animationDuration = Math.random() * 3 + 2 + "s";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 5000);
+      }, 300);
+
+      // Nhạc nền
+      const playBtn = document.getElementById("playMusic");
+      const bgMusic = document.getElementById("bgMusic");
+      playBtn.addEventListener("click", () => {
+        bgMusic.play();
+        playBtn.innerText = "🎶 Đang phát nhạc...";
+        playBtn.disabled = true;
+      });
+    </script>
   </body>
 </html>
